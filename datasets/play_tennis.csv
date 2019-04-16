@@ -1,0 +1,15 @@
+day,weather,temperature,humidity,wind,play_tennis
+D1,sunny,hot,high,weak,no
+D2,sunny,hot,high,strong,no
+D3,cloudy,hot,high,weak,yes
+D4,rain,warm,high,weak,yes
+D5,rain,cold,normal,weak,yes
+D6,rain,cold,normal,strong,no
+D7,cloudy,cold,normal,strong,yes
+D8,sunny,warm,high,weak,no
+D9,sunny,cold,normal,weak,yes
+D10,rain,warm,normal,weak,yes
+D11,sunny,warm,normal,strong,yes
+D12,cloudy,warm,high,strong,yes
+D13,cloudy,hot,normal,weak,yes
+D14,rain,warm,high,strong,no
