@@ -11,6 +11,8 @@ dataset <- read_csv("datasets/play_tennis.csv")[,-1]
 v_names <- c(colnames(dataset[-5]), pull(unique(dataset[5])))
 v_colors = replicate(length(v_names), randomColor())
 names(v_colors) <- v_names
+v_colors["yes"] <- "green"
+v_colors["no"] <- "red"
 
 # Creates an undirected graph
 g <- graph.empty(directed = F)
@@ -49,7 +51,7 @@ g <- add_vertices(g, 1, label = v_name, color = v_color, attr = list())      #v6
 
 g <- add_edges(g, c(2,6), label = "normal", attr = list())    #v2--v6
 
-label = "no"
+v_name = "no"
 v_color = unname(v_colors[v_name])
 g <- add_vertices(g, 1, label = v_name, color = v_color, attr = list())      #v7
 
