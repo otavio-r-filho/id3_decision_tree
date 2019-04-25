@@ -1,11 +1,16 @@
 # Importing libraries
 library(readr)
 library(igraph)
-library(randomcoloR)
 library(dplyr)
 
 # Loading the dataset
 dataset <- read_csv("datasets/play_tennis.csv")[,-1]
+
+randomColor <- function(){
+  new_color <- round(runif(3, min = 0, max = 255), digits = 0)
+  new_color <- as.character.hexmode(new_color)
+  paste("#", new_color[1], new_color[2], new_color[3], sep = "")
+}
 
 # Creating vertice names and colors
 v_names <- c(colnames(dataset[-5]), pull(unique(dataset[5])))
