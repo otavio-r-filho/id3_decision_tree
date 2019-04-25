@@ -24,6 +24,11 @@ entropy <-function(label_col){
   -sum(probs * log2(probs))
 }
 
+decouple_col <- function(ds, col_name, col_val, label_col) {
+  filter_ds <- ds %>% filter(col_name == col_val)
+  return(filter_ds[label_col])
+}
+
 information_gain <- function(df, col_name, label_col){
   
 }
@@ -40,5 +45,16 @@ base_df <- read_csv("datasets/play_tennis.csv")[-1]
 ####                            TESTING AREA                             ####
 #############################################################################
 
-col_name <- "weather"
+df <- base_df
+col_name <- "wind"
+col_val <- "strong"
 label_col <- "play_tennis"
+probs_den <- nrow(df)
+probs <- as.vector(table(df[col_name])) / probs_den
+col_names <- names(table(df[col_name]))
+filter_ds <- apply(ds, filter_col, ...)
+
+unq_vals <- unique(base_df[col_name])
+for(condition in unique(base_df[col_name])){
+  print(un)
+}
