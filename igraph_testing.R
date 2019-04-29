@@ -24,48 +24,54 @@ g <- graph.empty(directed = F)
 
 v_name = "weather"
 v_color = unname(v_colors[v_name])
-g <- add_vertices(g, 1, label = v_name, color = v_color, attr = list())      #v1
+g <- add_vertices(g, 1, label = v_name, name = v_name, color = v_color, attr = list())      #v1
 
 v_name = "humidity"
 v_color = unname(v_colors[v_name])
-g <- add_vertices(g, 1, label = v_name, color = v_color, attr = list())      #v2
+g <- add_vertices(g, 1, label = v_name, name = v_name, color = v_color, attr = list())      #v2
 
-g <- add_edges(g, c(1,2), label = "sunny", attr = list())    #v1--v2
+g <- add_edges(g, c("weather", "humidity"), label = "sunny", name = "sunny", attr = list())    #v1--v2
 
 v_name = "wind"
 v_color = unname(v_colors[v_name])
-g <- add_vertices(g, 1, label = v_name, color = v_color, attr = list())      #v3
+g <- add_vertices(g, 1, label = v_name, name = v_name, color = v_color, attr = list())      #v3
 
-g <- add_edges(g, c(1,3), label = "rain", attr = list())    #v1--v3
+g <- add_edges(g, c("weather","wind"), label = "rain", name = "rain",attr = list())    #v1--v3
 
 v_name = "yes"
 v_color = unname(v_colors[v_name])
-g <- add_vertices(g, 1, label = v_name, color = v_color, attr = list())      #v4
+g <- add_vertices(g, 1, label = v_name, name = "yes1", color = v_color, attr = list())      #v4
 
-g <- add_edges(g, c(1,4), label = "cloudy", attr = list())    #v1--v4
+g <- add_edges(g, c("weather","yes1"), label = "cloudy", name = "cloudy", attr = list())    #v1--v4
 
 v_name = "no"
 v_color = unname(v_colors[v_name])
-g <- add_vertices(g, 1, label = v_name, color = v_color, attr = list())      #v5
+g <- add_vertices(g, 1, label = v_name, name = "no1",color = v_color, attr = list())      #v5
 
-g <- add_edges(g, c(2,5), label = "high", attr = list())    #v2--v5
+g <- add_edges(g, c("humidity","no1"), label = "high", name = "high", attr = list())    #v2--v5
 
 v_name = "yes"
 v_color = unname(v_colors[v_name])
-g <- add_vertices(g, 1, label = v_name, color = v_color, attr = list())      #v6
+g <- add_vertices(g, 1, label = v_name, name = "yes2", color = v_color, attr = list())      #v6
 
-g <- add_edges(g, c(2,6), label = "normal", attr = list())    #v2--v6
+g <- add_edges(g, c("humidity","yes2"), label = "normal", name = "normal", attr = list())    #v2--v6
 
 v_name = "no"
 v_color = unname(v_colors[v_name])
-g <- add_vertices(g, 1, label = v_name, color = v_color, attr = list())      #v7
+g <- add_vertices(g, 1, label = v_name, name = "no2", color = v_color, attr = list())      #v7
 
-g <- add_edges(g, c(3,7), label = "strong", attr = list())    #v3--v7
+g <- add_edges(g, c("wind","no2"), label = "strong", name = "strong", attr = list())    #v3--v7
 
 v_name = "yes"
 v_color = unname(v_colors[v_name])
-g <- add_vertices(g, 1, label = v_name, color = v_color, attr = list())      #v8
+g <- add_vertices(g, 1, label = v_name, name = "yes3",color = v_color, attr = list())      #v8
 
-g <- add_edges(g, c(3,8), label = "weak", attr = list())    #v3--v8
+g <- add_edges(g, c("wind","yes3"), label = "weak", name = "weak", attr = list())    #v3--v8
 
 plot(g, layout = layout_as_tree)
+
+spath = names(unlist(shortest_paths(g, from = "weather", "no1", output = "both")$vpath))
+sedge = names(unlist(shortest_paths(g, from = "weather", "no1", output = "both")$epath))
+
+spath
+sedge
