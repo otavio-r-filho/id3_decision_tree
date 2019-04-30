@@ -89,13 +89,24 @@ df <- base_df
 
 id3_tree <- graph.empty(directed = FALSE)
 v_names <- get_vertice_names(df, label_col)
-tree_root <- names(argmax(sapply(col_names, information_gain, label_col = label_col, df = df)))
+tree_root <- names(argmax(sapply(v_names, information_gain, label_col = label_col, df = df)))
 father_q <- tree_root
 v_father <- NULL
 v_child <- NULL
 while(length(father_q) > 0){
   v_father <- father_q[1]
-  edges <- unname(unique(df[v_father]))
+  edges <- unlist(unique(df[v_father]))
   print(c(v_father, edges))
+  for(e in edges){
+    
+  }
   v_names <- v_names[!v_names %in% v_father]
 }
+
+id3_tree <- graph.empty(directed = FALSE)
+id3_tree <- add_vertices(id3_tree, 1, name = "weather", label = "weather", attr = list())
+id3_tree <- add_vertices(id3_tree, 1, name = "humidity", label = "humidity", attr = list())
+id3_tree <- add_vertices(id3_tree, 1, name = "no1", label = "no", attr(leaf_label = "no"))
+id3_tree <- add_vertices(id3_tree, 1, name = "yes1", label = "yes", attr(leaf_label = "yes"))
+id3_tree <- add_edges(id3_tree, c("weather","humidity"), label = "sunny", name = "sunny", attr = list())
+plot(id3_tree, layout = layout_as_tree)
