@@ -88,17 +88,32 @@ label_col <- "play_tennis"
 df <- base_df
 
 id3_tree <- graph.empty(directed = FALSE)
+leafs_count <- unlist(unique(df[label_col]))
 v_names <- get_vertice_names(df, label_col)
 tree_root <- names(argmax(sapply(v_names, information_gain, label_col = label_col, df = df)))
 father_q <- tree_root
 v_father <- NULL
 v_child <- NULL
+v_colors <- get_vertice_colors(df, label_col)
 while(length(father_q) > 0){
   v_father <- father_q[1]
-  edges <- unlist(unique(df[v_father]))
-  print(c(v_father, edges))
+  v_names <- v_names[-which(v_names == v_father)]
+  
+  if(v_father == tree_root){
+    v_filtered_df <- df
+  } else {
+    spath <- shortest_paths(id3_tree, from = tree_root, to = v_father, output = "both")
+    vpath <- names(unlist(spath$vpath))
+    vpath <- vpath[-which(vpath == v_father)]
+    epath <- names(unlist(spath$epath))
+    v_filtered_df <- filter_cols(vpath, epath, df)
+  }
+  
+  edges <- unlist(unique(v_filtered_df[v_father]))
   for(e in edges){
-    
+    e_filtered_df <- filter_cols(v_father, edges[1], v_filtered_df)
+    print(names(argmax(sapply(v_names, information_gain, label_col = label_col, df = e_filtered_df))))
+    father_q <- append(father_q, names(argmax(sapply(v_names, information_gain, label_col = label_col, df = e_filtered_df))))
   }
   v_names <- v_names[!v_names %in% v_father]
 }
