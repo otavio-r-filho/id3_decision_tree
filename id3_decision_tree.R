@@ -97,6 +97,7 @@ v_child <- NULL
 v_colors <- get_vertice_colors(df, label_col)
 while(length(father_q) > 0){
   v_father <- father_q[1]
+  father_q <- father_q[-which(father_q == v_father)]
   v_names <- v_names[-which(v_names == v_father)]
   
   if(v_father == tree_root){
@@ -115,7 +116,6 @@ while(length(father_q) > 0){
     print(names(argmax(sapply(v_names, information_gain, label_col = label_col, df = e_filtered_df))))
     father_q <- append(father_q, names(argmax(sapply(v_names, information_gain, label_col = label_col, df = e_filtered_df))))
   }
-  v_names <- v_names[!v_names %in% v_father]
 }
 
 id3_tree <- graph.empty(directed = FALSE)
