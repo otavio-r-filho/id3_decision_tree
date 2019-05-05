@@ -68,10 +68,11 @@ g <- add_vertices(g, 1, label = v_name, name = "yes3",color = v_color, attr = li
 
 g <- add_edges(g, c("wind","yes3"), label = "weak", name = "weak", attr = list())    #v3--v8
 
-plot(g, layout = layout_as_tree)
+plot(g, layout = layout_as_tree(g, root = "weather"))
 
-spath = names(unlist(shortest_paths(g, from = "weather", "no1", output = "both")$vpath))
-sedge = names(unlist(shortest_paths(g, from = "weather", "no1", output = "both")$epath))
+spath <- names(unlist(shortest_paths(g, from = "weather", "humidity", output = "both")$vpath))
+spath <- spath[-which(spath == "humidity")]
+sedge <- names(unlist(shortest_paths(g, from = "weather", "humidity", output = "both")$epath))
 
 spath
 sedge

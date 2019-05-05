@@ -88,17 +88,26 @@ label_col <- "play_tennis"
 df <- base_df
 
 id3_tree <- graph.empty(directed = FALSE)
-leafs_count <- unlist(unique(df[label_col]))
+
+leafs_names <- unlist(unique(df[label_col]))
+leafs_count <- rep(0, length(leafs_names))
+names(leafs_count) <- leafs_names
+
 v_names <- get_vertice_names(df, label_col)
 tree_root <- names(argmax(sapply(v_names, information_gain, label_col = label_col, df = df)))
 father_q <- tree_root
+v_names <- v_names[-which(v_names == tree_root)]
+
+v_colors <- get_vertice_colors(df, label_col)
+v_color = unname(v_colors[tree_root])
+id3_tree <- add_vertices(id3_tree, 1, label = tree_root, name = tree_root, color = v_color, attr = list())
+
 v_father <- NULL
 v_child <- NULL
-v_colors <- get_vertice_colors(df, label_col)
+
 while(length(father_q) > 0){
   v_father <- father_q[1]
-  father_q <- father_q[-which(father_q == v_father)]
-  v_names <- v_names[-which(v_names == v_father)]
+  father_q <- father_q[-1]
   
   if(v_father == tree_root){
     v_filtered_df <- df
@@ -110,13 +119,37 @@ while(length(father_q) > 0){
     v_filtered_df <- filter_cols(vpath, epath, df)
   }
   
-  edges <- unlist(unique(v_filtered_df[v_father]))
+  edges <- unname(unlist(unique(v_filtered_df[v_father])))
   for(e in edges){
-    e_filtered_df <- filter_cols(v_father, edges[1], v_filtered_df)
-    print(names(argmax(sapply(v_names, information_gain, label_col = label_col, df = e_filtered_df))))
-    father_q <- append(father_q, names(argmax(sapply(v_names, information_gain, label_col = label_col, df = e_filtered_df))))
+    e_filtered_df <- filter_cols(v_father, e, v_filtered_df)
+    igains = sapply(v_names, information_gain, label_col = label_col, df = e_filtered_df)
+      
+    if(max(igains) == 0) {
+      print("Leaf")
+    } else {
+      print("vertex")
+    }
+    
+    if(max(igains) == 0) { 
+      leaf_name <- unname(unlist(unique(e_filtered_df[label_col])))
+      leafs_count[leaf_name] = leafs_count[leaf_name] + 1
+      v_color = unname(v_colors[leaf_name])
+      leaf_name <- paste(leaf_name, leafs_count[leaf_name], sep = "")
+      id3_tree <- add_vertices(id3_tree, 1, label = leaf_name, name = leaf_name, color = v_color, attr = list())
+      id3_tree <- add_edges(id3_tree, c(v_father, leaf_name), label = e, name = e, attr = list())
+    } else {
+      v_name <- names(argmax(igains))
+      v_color = unname(v_colors[v_name])
+      id3_tree <- add_vertices(id3_tree, 1, label = v_name, name = v_name, color = v_color, attr = list())
+      id3_tree <- add_edges(id3_tree, c(v_father, v_name), label = e, name = e, attr = list())
+      father_q <- append(father_q, names(argmax(sapply(v_names, information_gain, label_col = label_col, df = e_filtered_df))))
+      v_names <- v_names[-which(v_names == v_name)]
+    }
   }
+  
 }
+
+plot(id3_tree, layout = layout_as_tree(id3_tree, root = tree_root))
 
 id3_tree <- graph.empty(directed = FALSE)
 id3_tree <- add_vertices(id3_tree, 1, name = "weather", label = "weather", attr = list())
