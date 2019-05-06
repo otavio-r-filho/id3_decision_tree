@@ -68,8 +68,91 @@ information_gain <- function(col_name, label_col, df){
   df_E - sum(probs * col_E)
 }
 
+gain_ratio <- function(col_name, label_col, df){
+  df_E <- entropy(df[label_col])
+  igain <- information_gain(col_name, label_col, df)
+  return(igain/df_E)
+}
+
+col_name <- "wind"
+label_col <- "play_tennis"
+df <- base_df
+
+gindex(col_name = col_name, df = df)
+gindex(col_name = label_col, df = df)
+
+gindex <- function(col_name, df){
+  probs <- as.vector(table(df[col_name])) / nrow(df)
+  return(1 - sum(probs^2))
+}
+
+gini_index <- function(col_name, label_col, df){
+  IS <- gindex(label_col, df)
+  probs <- as.vector(table(df[col_name])) / nrow(df)
+  gi <- 1.0 - sum(probs^2)
+}
+
 id3_decision_tree <- function(df, label_col) {
+  id3_tree <- graph.empty(directed = FALSE)
   
+  leafs_names <- unlist(unique(df[label_col]))
+  leafs_count <- rep(0, length(leafs_names))
+  names(leafs_count) <- leafs_names
+  
+  v_names <- get_vertice_names(df, label_col)
+  tree_root <- names(argmax(sapply(v_names, information_gain, label_col = label_col, df = df)))
+  father_q <- tree_root
+  v_names <- v_names[-which(v_names == tree_root)]
+  
+  v_colors <- get_vertice_colors(df, label_col)
+  v_color = unname(v_colors[tree_root])
+  id3_tree <- add_vertices(id3_tree, 1, label = tree_root, name = tree_root, color = v_color, attr = list())
+  
+  v_father <- NULL
+  v_child <- NULL
+  
+  while(length(father_q) > 0){
+    v_father <- father_q[1]
+    father_q <- father_q[-1]
+    
+    if(v_father == tree_root){
+      v_filtered_df <- df
+    } else {
+      spath <- shortest_paths(id3_tree, from = tree_root, to = v_father, output = "both")
+      vpath <- names(unlist(spath$vpath))
+      vpath <- vpath[-which(vpath == v_father)]
+      epath <- names(unlist(spath$epath))
+      v_filtered_df <- filter_cols(vpath, epath, df)
+    }
+    
+    edges <- unname(unlist(unique(v_filtered_df[v_father])))
+    for(e in edges){
+      e_filtered_df <- filter_cols(v_father, e, v_filtered_df)
+      igains = sapply(v_names, information_gain, label_col = label_col, df = e_filtered_df)
+      
+      if(max(igains) == 0) { 
+        leaf_label <- unname(unlist(unique(e_filtered_df[label_col])))
+        leafs_count[leaf_label] = leafs_count[leaf_label] + 1
+        v_color = unname(v_colors[leaf_label])
+        leaf_name <- paste(leaf_label, leafs_count[leaf_label], sep = "")
+        id3_tree <- add_vertices(id3_tree, 1, label = leaf_label, name = leaf_name, color = v_color, attr = list())
+        id3_tree <- add_edges(id3_tree, c(v_father, leaf_name), label = e, name = e, attr = list())
+      } else {
+        v_name <- names(argmax(igains))
+        v_color = unname(v_colors[v_name])
+        id3_tree <- add_vertices(id3_tree, 1, label = v_name, name = v_name, color = v_color, attr = list())
+        id3_tree <- add_edges(id3_tree, c(v_father, v_name), label = e, name = e, attr = list())
+        igains <- sapply(v_names, information_gain, label_col = label_col, df = e_filtered_df)
+        father_q <- append(father_q, names(argmax(igains)))
+        v_names <- v_names[-which(v_names == v_name)]
+      }
+    }
+  }
+  
+  return(list(
+    tree = id3_tree,
+    root = tree_root
+  ))
 }
 
 #############################################################################
@@ -85,76 +168,6 @@ base_df <- read_csv("datasets/play_tennis.csv")[-1]
 #############################################################################
 
 label_col <- "play_tennis"
-df <- base_df
 
-id3_tree <- graph.empty(directed = FALSE)
-
-leafs_names <- unlist(unique(df[label_col]))
-leafs_count <- rep(0, length(leafs_names))
-names(leafs_count) <- leafs_names
-
-v_names <- get_vertice_names(df, label_col)
-tree_root <- names(argmax(sapply(v_names, information_gain, label_col = label_col, df = df)))
-father_q <- tree_root
-v_names <- v_names[-which(v_names == tree_root)]
-
-v_colors <- get_vertice_colors(df, label_col)
-v_color = unname(v_colors[tree_root])
-id3_tree <- add_vertices(id3_tree, 1, label = tree_root, name = tree_root, color = v_color, attr = list())
-
-v_father <- NULL
-v_child <- NULL
-
-while(length(father_q) > 0){
-  v_father <- father_q[1]
-  father_q <- father_q[-1]
-  
-  if(v_father == tree_root){
-    v_filtered_df <- df
-  } else {
-    spath <- shortest_paths(id3_tree, from = tree_root, to = v_father, output = "both")
-    vpath <- names(unlist(spath$vpath))
-    vpath <- vpath[-which(vpath == v_father)]
-    epath <- names(unlist(spath$epath))
-    v_filtered_df <- filter_cols(vpath, epath, df)
-  }
-  
-  edges <- unname(unlist(unique(v_filtered_df[v_father])))
-  for(e in edges){
-    e_filtered_df <- filter_cols(v_father, e, v_filtered_df)
-    igains = sapply(v_names, information_gain, label_col = label_col, df = e_filtered_df)
-      
-    if(max(igains) == 0) {
-      print("Leaf")
-    } else {
-      print("vertex")
-    }
-    
-    if(max(igains) == 0) { 
-      leaf_name <- unname(unlist(unique(e_filtered_df[label_col])))
-      leafs_count[leaf_name] = leafs_count[leaf_name] + 1
-      v_color = unname(v_colors[leaf_name])
-      leaf_name <- paste(leaf_name, leafs_count[leaf_name], sep = "")
-      id3_tree <- add_vertices(id3_tree, 1, label = leaf_name, name = leaf_name, color = v_color, attr = list())
-      id3_tree <- add_edges(id3_tree, c(v_father, leaf_name), label = e, name = e, attr = list())
-    } else {
-      v_name <- names(argmax(igains))
-      v_color = unname(v_colors[v_name])
-      id3_tree <- add_vertices(id3_tree, 1, label = v_name, name = v_name, color = v_color, attr = list())
-      id3_tree <- add_edges(id3_tree, c(v_father, v_name), label = e, name = e, attr = list())
-      father_q <- append(father_q, names(argmax(sapply(v_names, information_gain, label_col = label_col, df = e_filtered_df))))
-      v_names <- v_names[-which(v_names == v_name)]
-    }
-  }
-  
-}
-
-plot(id3_tree, layout = layout_as_tree(id3_tree, root = tree_root))
-
-id3_tree <- graph.empty(directed = FALSE)
-id3_tree <- add_vertices(id3_tree, 1, name = "weather", label = "weather", attr = list())
-id3_tree <- add_vertices(id3_tree, 1, name = "humidity", label = "humidity", attr = list())
-id3_tree <- add_vertices(id3_tree, 1, name = "no1", label = "no", attr(leaf_label = "no"))
-id3_tree <- add_vertices(id3_tree, 1, name = "yes1", label = "yes", attr(leaf_label = "yes"))
-id3_tree <- add_edges(id3_tree, c("weather","humidity"), label = "sunny", name = "sunny", attr = list())
-plot(id3_tree, layout = layout_as_tree)
+id3_tree <- id3_decision_tree(df = base_df, label_col = label_col)
+plot(id3_tree$tree, layout = layout_as_tree(id3_tree$tree, root = id3_tree$root))
